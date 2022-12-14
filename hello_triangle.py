@@ -68,7 +68,7 @@ def main():
         info_log = gl.glGetShaderInfoLog(fragmentShader, 512, None)
         raise Exception("FRAGMENT_SHADER_COMPILE_ERROR\n%s" % info_log)
 
-    # 컴파일 된 Shader를 shaderProgram으로 연결하여 사용
+    # 컴파일 된 Shader를 shaderProgram으로 연결하여 사용dd
     shaderProgram = gl.glCreateProgram()
     gl.glAttachShader(shaderProgram, vertexShader)
     gl.glAttachShader(shaderProgram, fragmentShader)
