@@ -1,7 +1,7 @@
 import math
 import glfw
 import OpenGL.GL as gl
-from OpenGL.GL import shaders
+import OpenGL.GL.shaders as shaders
 from ctypes import c_float, sizeof, c_void_p
 
 
@@ -9,9 +9,13 @@ vertex_shader = """
 #version 330 core
 
 layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+
+out vec3 ourColor;
 
 void main() {
     gl_Position = vec4(aPos, 1.0);
+    ourColor = aColor;
 }
 """
 
@@ -19,10 +23,10 @@ fragment_shader = """
 #version 330 core
 
 out vec4 FragColor;
-uniform vec4 ourColor;
+in vec3 ourColor;
 
 void main() {
-    FragColor = ourColor;
+    FragColor = vec4(ourColor, 1.);
 }
 """
 
@@ -30,9 +34,10 @@ void main() {
 def main():
     glfw.init()
     glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
-    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
-    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-    glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 1)
+    # glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+    
+    # glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True) For MacOS
 
     window = glfw.create_window(800, 600, "LearnOpenGL", None, None)
     if not window:
@@ -42,27 +47,19 @@ def main():
     glfw.make_context_current(window)
     glfw.set_window_size_callback(window, on_resize)
 
-     # vertexShader 객체 생성
-    vertexShader = gl.glCreateShader(gl.GL_VERTEX_SHADER)
-    # shader 소스 코드 정보 
-    gl.glShaderSource(vertexShader, vertex_shader) 
-    # 컴파일
-    gl.glCompileShader(vertexShader)
+    # vertexShader 객체 생성
+    vertexShader = shaders.compileShader(vertex_shader, gl.GL_VERTEX_SHADER)
+    fragmentShader = shaders.compileShader(fragment_shader, gl.GL_FRAGMENT_SHADER)
+    shader = shaders.compileProgram(vertexShader, fragmentShader)
+    gl.glDeleteShader(vertexShader)
+    gl.glDeleteShader(fragmentShader)
+    
 
-    fragmentShader = gl.glCreateShader(gl.GL_FRAGMENT_SHADER)
-    # shader 소스 코드 정보 fragment shader 객체에 입력
-    gl.glShaderSource(fragmentShader, fragment_shader)  
-    # 컴파일
-    gl.glCompileShader(fragmentShader)
-
-    shader= gl.glCreateProgram()
-    gl.glAttachShader(shader, vertexShader)
-    gl.glAttachShader(shader, fragmentShader)
-    gl.glLinkProgram(shader)
+    
     vertices = [
-        -0.5, -0.5, 0.0,
-         0.5, -0.5, 0.0,
-         0.0,  0.5, 0.0,
+        -0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
+         0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
+         0.0,  0.5, 0.0, 0.0, 0.0, 1.0
     ]
     vertices = (c_float * len(vertices))(*vertices)
 
@@ -73,11 +70,13 @@ def main():
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo)
     gl.glBufferData(gl.GL_ARRAY_BUFFER, sizeof(vertices), vertices, gl.GL_STATIC_DRAW)
 
-    gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 3 * sizeof(c_float), c_void_p(0))
+    gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 6 * sizeof(c_float), c_void_p(0))
     gl.glEnableVertexAttribArray(0)
+    gl.glVertexAttribPointer(1, 3, gl.GL_FLOAT, gl.GL_FALSE, 6 * sizeof(c_float), c_void_p(3*sizeof(c_float)))
+    gl.glEnableVertexAttribArray(1)
 
-    gl.glBindBuffer(gl.GL_ARRAY_BUFFER, 0)
-    gl.glBindVertexArray(0)
+    # gl.glBindBuffer(gl.GL_ARRAY_BUFFER, 0)
+    # gl.glBindVertexArray(0)
 
     while not glfw.window_should_close(window):
         process_input(window)

@@ -27,10 +27,11 @@ void main()
 def main():
     # glfw init
     glfw.init()
-    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
-    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
-    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-    glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True)
+    # glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+    # glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+    # glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+    
+    # glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, True) For MacOS
 
     
     # glfw window 생성
@@ -99,7 +100,7 @@ def main():
     gl.glBindVertexArray(VAO)
 
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER, VBO)
-    gl.glBufferData(gl.GL_ARRAY_BUFFER, vertices.nbytes, vertices, gl.GL_STATIC_DRAW)  # INFO: use np.array with nsize
+    gl.glBufferData(gl.GL_ARRAY_BUFFER, vertices.nbytes, vertices, gl.GL_STATIC_DRAW) 
     
     # Vertex의 속성 포인터의 시작점과 데이터 정보를 설정
     gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 0, c_void_p(0))  
