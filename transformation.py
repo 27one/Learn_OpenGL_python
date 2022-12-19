@@ -1,6 +1,7 @@
 import sys
 import glfw
 import OpenGL.GL as gl
+import glm
 from PIL import Image
 from pathlib import Path
 from ctypes import c_uint, c_float, sizeof, c_void_p
@@ -30,7 +31,7 @@ def main():
     glfw.make_context_current(window)
     glfw.set_window_size_callback(window, on_resize)
 
-    shader = Shader(CURDIR / 'shaders/texture.vs', CURDIR / 'shaders/texture.fs')
+    shader = Shader(CURDIR / 'shaders/trans.vs', CURDIR / 'shaders/trans.fs')
 
     print(shader)
     vertices = [
@@ -82,6 +83,17 @@ def main():
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img.tobytes())
     gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
 
+    # vec = glm.vec4([1.0, 0.0,  0.0, 1.0])
+    # trans = glm.mat4()
+    # trans = glm.translate(trans, glm.vec3([1.0,1.0,0.0]))
+    # vec = trans*vec
+
+    # trans = glm.mat4()
+    # trans = glm.rotate(trans, glm.radians(90.0), glm.vec3([0.0, 0.0, 1.0]))
+    # trans = glm.scale(trans, glm.vec3([0.5, 0.5, 0.5]))
+
+    
+    
     while not glfw.window_should_close(window):
         process_input(window)
 
@@ -89,8 +101,13 @@ def main():
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
         gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
+        trans = glm.mat4()
+        # trans = glm.translate(trans, glm.vec3([0.5, -0.5, 0.0]))
+        trans = glm.rotate(trans, glfw.get_time(), glm.vec3([0.0, 0.0, 1.0]))
         shader.use()
-       
+        # shader.set_mat4('transform', glm.value_ptr(trans))
+        transformLoc = gl.glGetUniformLocation(shader.ID, "transform")
+        gl.glUniformMatrix4fv(transformLoc, 1, gl.GL_FALSE, glm.value_ptr(trans))      
         gl.glBindVertexArray(vao)
         gl.glDrawElements(gl.GL_TRIANGLES, 6, gl.GL_UNSIGNED_INT, c_void_p(0))
 

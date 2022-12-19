@@ -93,7 +93,8 @@ def main():
     # 렌더링 루프에서 바인드하기 위해 unbind
     gl.glBindVertexArray(0)
 
-    gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
+    # gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_LINE)
+    gl.glPolygonMode(gl.GL_FRONT_AND_BACK, gl.GL_FILL)
 
     # 렌더링 루프
     while not glfw.window_should_close(window):
