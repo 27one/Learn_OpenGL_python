@@ -143,6 +143,7 @@ def main():
         view = glm.translate(view, glm.vec3([0.0, 0.0, -3.0]))
 
         projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 100.0)
+        
         model = glm.mat4()
         model = glm.rotate(model, glfw.get_time()*glm.radians(50.0), glm.vec3([0.5, 1.0, 0.0]))
         
