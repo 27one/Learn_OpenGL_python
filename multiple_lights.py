@@ -19,7 +19,7 @@ from shader import Shader
 SRC_WIDTH = 800
 SRC_HEIGHT = 600
 
-view_pos = Vector3([0.0, 0.0, 12.0])
+view_pos = Vector3([0.0, 0.0, 11.0])
 
 def main():
 
@@ -36,7 +36,7 @@ def main():
     glfw.make_context_current(window)
     glfw.set_framebuffer_size_callback(window, framebuffer_size_callback)
    
-    glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+    # glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
     gl.glEnable(gl.GL_DEPTH_TEST)
 
@@ -90,7 +90,6 @@ def main():
     vertices = (c_float * len(vertices))(*vertices)
 
     cube_positions = [
-        ( 0.0,  0.0,  0.0),
         ( 2.0,  5.0, -15.0),
         (-1.5, -2.2, -2.5),
         (-3.8, -2.0, -12.3),
@@ -102,13 +101,21 @@ def main():
         (-1.3,  1.0, -1.5)
     ]
 
-    point_light_positions = [
-        ( 0.7,  0.2,  2.0),
-        ( 2.3, -3.3, -4.0),
-        (-4.0,  2.0, -12.0),
-        ( 0.0,  0.0, -3.0),
-    ]
+    # cube_positions = [
+    #     ( 0.0,  0.0,  0.0),
+    #     ( 1.0, 1.0, 1.0)
+    # ]
 
+    # point_light_positions = [
+    #     ( 0.7,  0.2,  2.0),
+    #     ( 2.3, -3.3, -4.0),
+    #     (-4.0,  2.0, -12.0),
+    #     ( 0.0,  0.0, -3.0),
+    # ]
+
+    point_light_positions = [
+        (5., 5., 0.)
+    ]
     cube_vao = gl.glGenVertexArrays(1)
     vbo = gl.glGenBuffers(1)
 
@@ -117,115 +124,106 @@ def main():
 
     gl.glBindVertexArray(cube_vao)
 
-    # -- position attribute
+    # position attribute
     gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 8 * sizeof(c_float), c_void_p(0))
     gl.glEnableVertexAttribArray(0)
-    # -- normal attribute
+    # normal attribute
     gl.glVertexAttribPointer(1, 3, gl.GL_FLOAT, gl.GL_FALSE, 8 * sizeof(c_float), c_void_p(3 * sizeof(c_float)))
     gl.glEnableVertexAttribArray(1)
-    # -- texture coordinate
+    # texture coordinate
     gl.glVertexAttribPointer(2, 2, gl.GL_FLOAT, gl.GL_FALSE, 8 * sizeof(c_float), c_void_p(6 * sizeof(c_float)))
     gl.glEnableVertexAttribArray(2)
 
-    # -- second configure light vao (vbo is the same)
+    # vao for light
     light_vao = gl.glGenVertexArrays(1)
     gl.glBindVertexArray(light_vao)
-
+    
+    # use only postion attribute
     gl.glBindBuffer(gl.GL_ARRAY_BUFFER, vbo)
     gl.glVertexAttribPointer(0, 3, gl.GL_FLOAT, gl.GL_FALSE, 8 * sizeof(c_float), c_void_p(0))
     gl.glEnableVertexAttribArray(0)
 
-    # -- load texture
-    diffuse_map = load_texture("container.jpg")
+    # load texture
+    load_texture("container.jpg")
     
-
-    # -- shader configuration
-    lighting_shader.use()
-    lighting_shader.set_int("material.diffuse", 0)
-
     while not glfw.window_should_close(window):
-
-        # -- input
         process_input(window)
 
-        # -- render
         gl.glClearColor(0.1, 0.1, 0.1, 1.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
 
         lighting_shader.use()
         lighting_shader.set_vec3("viewPos", view_pos)
-        lighting_shader.set_float("material.shininess", 80.0)
+        lighting_shader.set_float("material.shininess", 256.0)
 
         # directional light
         lighting_shader.set_vec3("dirLight.direction", [-0.2, -1.0, -0.3])
         lighting_shader.set_vec3("dirLight.ambient", [0.0, 0.0, 0.0])
         lighting_shader.set_vec3("dirLight.diffuse", [0., 0., 0.])
-      
+        theta = glfw.get_time()
+
         # point light 1
-        lighting_shader.set_vec3("pointLights[0].position", point_light_positions[0])
-        lighting_shader.set_vec3("pointLights[0].ambient", [0.0, 0.0, 0.0])
-        lighting_shader.set_vec3("pointLights[0].diffuse", [4.0, 4., 4.])
+        lighting_shader.set_vec3("pointLights[0].position", [point_light_positions[0][0]*math.sin(theta), point_light_positions[0][1]*math.cos(theta), point_light_positions[0][2]])
+        lighting_shader.set_vec3("pointLights[0].ambient", [.1, .1, .1])
+        lighting_shader.set_vec3("pointLights[0].diffuse", [2.0, 2.0, 2.0])
+        lighting_shader.set_vec3("pointLights[0].specular", [2.0, 2.0, 2.0])
         lighting_shader.set_float("pointLights[0].constant", 1.0)
         lighting_shader.set_float("pointLights[0].linear", 0.09)
         lighting_shader.set_float("pointLights[0].quadratic", 0.032)
-        #point light 2
-        lighting_shader.set_vec3("pointLights[1].position", point_light_positions[1])
-        lighting_shader.set_vec3("pointLights[1].ambient", [0.0, 0.0, 0.0])
-        lighting_shader.set_vec3("pointLights[1].diffuse", [0., 0., 0.])
-        lighting_shader.set_float("pointLights[1].constant", 1.0)
-        lighting_shader.set_float("pointLights[1].linear", 0.09)
-        lighting_shader.set_float("pointLights[1].quadratic", 0.032)
-        # point light 3
-        lighting_shader.set_vec3("pointLights[2].position", point_light_positions[2])
-        lighting_shader.set_vec3("pointLights[2].ambient", [0.0, 0.0, 0.0])
-        lighting_shader.set_vec3("pointLights[2].diffuse", [0., 0., 0.])
-        lighting_shader.set_float("pointLights[2].constant", 1.0)
-        lighting_shader.set_float("pointLights[2].linear", 0.09)
-        lighting_shader.set_float("pointLights[2].quadratic", 0.032)
-        # point light 4
-        lighting_shader.set_vec3("pointLights[3].position", point_light_positions[3])
-        lighting_shader.set_vec3("pointLights[3].ambient", [0.0, 0.0, 0.0])
-        lighting_shader.set_vec3("pointLights[3].diffuse", [0., 0., 0.])
-        lighting_shader.set_float("pointLights[3].constant", 1.0)
-        lighting_shader.set_float("pointLights[3].linear", 0.09)
-        lighting_shader.set_float("pointLights[3].quadratic", 0.032)
-        # -- spotLight
-        lighting_shader.set_vec3("spotLight.position", view_pos)
-        lighting_shader.set_vec3("spotLight.direction", [0.0, 0.0, -1.0])
-        lighting_shader.set_vec3("spotLight.ambient", [0.0, 0.0, 0.0])
-        lighting_shader.set_vec3("spotLight.diffuse", [0.0, 0.0, 0.0])
-        lighting_shader.set_float("spotLight.constant", 1.0)
-        lighting_shader.set_float("spotLight.linear", 0.09)
-        lighting_shader.set_float("spotLight.quadratic", 0.032)
-        lighting_shader.set_float("spotLight.cutOff", math.cos(math.radians(12.5)))
-        lighting_shader.set_float("spotLight.outerCutOff", math.cos(math.radians(15.0)))
+        # # point light 2
+        # lighting_shader.set_vec3("pointLights[1].position", point_light_positions[1])
+        # lighting_shader.set_vec3("pointLights[1].ambient", [0.0, 0.0, 0.0])
+        # lighting_shader.set_vec3("pointLights[1].diffuse", [0., 0., 0.])
+        # lighting_shader.set_float("pointLights[1].constant", 1.0)
+        # lighting_shader.set_float("pointLights[1].linear", 0.09)
+        # lighting_shader.set_float("pointLights[1].quadratic", 0.032)
+        # # point light 3
+        # lighting_shader.set_vec3("pointLights[2].position", point_light_positions[2])
+        # lighting_shader.set_vec3("pointLights[2].ambient", [0.0, 0.0, 0.0])
+        # lighting_shader.set_vec3("pointLights[2].diffuse", [0., 0., 0.])
+        # lighting_shader.set_float("pointLights[2].constant", 1.0)
+        # lighting_shader.set_float("pointLights[2].linear", 0.09)
+        # lighting_shader.set_float("pointLights[2].quadratic", 0.032)
+        # # point light 4
+        # lighting_shader.set_vec3("pointLights[3].position", point_light_positions[3])
+        # lighting_shader.set_vec3("pointLights[3].ambient", [0.0, 0.0, 0.0])
+        # lighting_shader.set_vec3("pointLights[3].diffuse", [0., 0., 0.])
+        # lighting_shader.set_float("pointLights[3].constant", 1.0)
+        # lighting_shader.set_float("pointLights[3].linear", 0.09)
+        # lighting_shader.set_float("pointLights[3].quadratic", 0.032)
+        # spotLight
+        # lighting_shader.set_vec3("spotLight.position", view_pos)
+        # lighting_shader.set_vec3("spotLight.direction", [0.0, 0.0, -1.0])
+        # lighting_shader.set_vec3("spotLight.ambient", [0.0, 0.0, 0.0])
+        # lighting_shader.set_vec3("spotLight.diffuse", [0.0, 0.0, 0.0])
+        # lighting_shader.set_float("spotLight.constant", 1.0)
+        # lighting_shader.set_float("spotLight.linear", 0.09)
+        # lighting_shader.set_float("spotLight.quadratic", 0.032)
+        # lighting_shader.set_float("spotLight.cutOff", math.cos(math.radians(12.5)))
+        # lighting_shader.set_float("spotLight.outerCutOff", math.cos(math.radians(15.0)))
 
-        # -- view.projection transformations
-        projection = Matrix44.perspective_projection(30, SRC_WIDTH/SRC_HEIGHT, 0.1, 100.0)
-        view = Matrix44.look_at(view_pos, view_pos + Vector3([0.0, 0.0, -1.0]), Vector3([0, 1, 0]))
+        # view.projection transformations
+        projection = Matrix44.perspective_projection(45, SRC_WIDTH/SRC_HEIGHT, 0.1, 100.0)
+        view = Matrix44.look_at(view_pos, Vector3([0.0, 0.0, -1.0]), Vector3([0. , 1.0, .0]))
         lighting_shader.set_mat4("projection", projection)
         lighting_shader.set_mat4("view", view)
 
-        # -- world transformation
+        # world transformation
         model = Matrix44.identity()
         lighting_shader.set_mat4("model", model)
 
-        # -- bind diffuse map
-        gl.glActiveTexture(gl.GL_TEXTURE0)
-        gl.glBindTexture(gl.GL_TEXTURE_2D, diffuse_map)
-
-        # -- rendering
+        # draw cubes
         gl.glBindVertexArray(cube_vao)
         for idx, position in enumerate(cube_positions):
             angle = 20.0 * idx
             rotation = matrix44.create_from_axis_rotation([1.0, 0.3, 0.5], math.radians(angle))
             spin = matrix44.create_from_axis_rotation([1.0, 0.3, 0.5], glfw.get_time())
             translation = Matrix44.from_translation(position)
-            model = translation * rotation * spin
+            model = translation * rotation 
             lighting_shader.set_mat4('model', model)
             gl.glDrawArrays(gl.GL_TRIANGLES, 0, 36)
 
-        # -- draw lamp object(s)
+        # draw lamp 
         lamp_shader.use()
         lamp_shader.set_mat4("projection", projection)
         lamp_shader.set_mat4("view", view)
@@ -234,7 +232,11 @@ def main():
 
         for pos in point_light_positions:
             model = Matrix44.identity()
+            pos = list(pos)
+            pos[0] *= math.sin(theta)
+            pos[1] *= math.cos(theta)
             model *= Matrix44.from_translation(pos)
+            # model *= matrix44.create_from_axis_rotation([1.0, .0, .0], glfw.get_time())
             model *= Matrix44.from_scale(Vector3([.2, .2, .2]))
 
             lamp_shader.set_mat4("model", model)
@@ -280,10 +282,10 @@ def load_texture(path,
     if generate_mipmaps:
         gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
 
-    # -- texture wrapping
+    # texture wrapping
     gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, wrap_s)
     gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, wrap_t)
-    # -- texture filterting
+    # texture filterting
     gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, min_filter)
     gl.glTexParameter(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, mag_filter)
 

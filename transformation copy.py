@@ -82,15 +82,16 @@ def main():
     img = Image.open(Tex('avikus.jpg')).transpose(Image.FLIP_TOP_BOTTOM)
     gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img.width, img.height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img.tobytes())
     gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
-    
-    view = glm.mat4()
-    view = glm.translate(view, glm.vec3([0.0, 0.0, -3.0]))
 
-    projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 100.0)
-    
-    shader.use()
-    shader.set_int("texture1", 0)
-    
+    model = glm.mat4()
+    model = glm.rotate(glm.radians(-55.0), glm.vec3([1.0, 0.0, 0.0]))
+
+    view = glm.mat4()
+    view = glm.translate(view, glm.vec3([0.0, 0.0, -3.0]))    
+
+    projection = glm.mat4()
+    projection = glm.perspective(glm.radians(45.0), 800/600, 0.1, 100.0)  
+
     while not glfw.window_should_close(window):
         process_input(window)
 
@@ -99,20 +100,14 @@ def main():
 
         gl.glBindTexture(gl.GL_TEXTURE_2D, texture)
         trans = glm.mat4()
-        # trans = glm.translate(trans, glm.vec3([0.5, -0.5, 0.0]))
-        # trans = glm.rotate(trans, glfw.get_time(), glm.vec3([0.0, 0.0, 1.0]))
+        trans = glm.rotate(trans, glfw.get_time(), glm.vec3([0.0, 0.0, 1.0]))
+
         shader.use()
         shader.set_mat4('transform', glm.value_ptr(trans))
-        viewLoc = gl.glGetUniformLocation(shader.ID, "view")
-        gl.glUniformMatrix4fv(viewLoc, 1, gl.GL_FALSE, glm.value_ptr(view))
-        projectionLoc = gl.glGetUniformLocation(shader.ID, "projection")
-        gl.glUniformMatrix4fv(projectionLoc, 1, gl.GL_FALSE, glm.value_ptr(projection))
-        transformLoc = gl.glGetUniformLocation(shader.ID, "transform")
-        gl.glUniformMatrix4fv(transformLoc, 1, gl.GL_FALSE, glm.value_ptr(trans)) 
-             
-        gl.glBindVertexArray(vao)
-        gl.glDrawElements(gl.GL_TRIANGLES, 6, gl.GL_UNSIGNED_INT, c_void_p(0))
-
+        shader.set_mat4('view', glm.value_ptr(view))
+        shader.set_mat4('projection', glm.value_ptr(projection))
+        shader.set_mat4('model', glm.value_ptr(model))
+        
         glfw.poll_events()
         glfw.swap_buffers(window)
 
